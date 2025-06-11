@@ -1,5 +1,6 @@
+
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Mic, MicOff } from "lucide-react";
+import { Send, Paperclip, Mic, MicOff, Smile, Frown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -196,22 +197,23 @@ const ChatInterface = () => {
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+  const handleSendMessage = async (messageText?: string) => {
+    const textToSend = messageText || inputValue;
+    if (!textToSend.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputValue,
+      text: textToSend,
       isUser: true,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
+    if (!messageText) setInputValue("");
     setIsTyping(true);
 
     try {
-      console.log("Sending message to n8n webhook:", inputValue);
+      console.log("Sending message to n8n webhook:", textToSend);
       console.log("Session ID:", sessionId);
       
       const response = await fetch("https://agent.froste.eu/webhook-test/d2f1481f-eaa9-4508-bc3d-35d209ab53c7", {
@@ -220,7 +222,7 @@ const ChatInterface = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: inputValue,
+          message: textToSend,
           timestamp: new Date().toISOString(),
           user_id: "chat_user",
           session_id: sessionId,
@@ -271,6 +273,14 @@ const ChatInterface = () => {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleHappyClick = () => {
+    handleSendMessage("😊 I'm feeling good!");
+  };
+
+  const handleSadClick = () => {
+    handleSendMessage("😔 I'm feeling down...");
   };
 
   const formatRecordingTime = (seconds: number) => {
@@ -333,7 +343,7 @@ const ChatInterface = () => {
               />
               
               <Button
-                onClick={handleSendMessage}
+                onClick={() => handleSendMessage()}
                 disabled={!inputValue.trim() || isRecording}
                 size="icon"
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 transition-colors"
@@ -344,9 +354,18 @@ const ChatInterface = () => {
           </div>
         )}
 
-        {/* Voice Input Row */}
+        {/* Voice Input Row with Smiley Icons */}
         {showVoiceInput && (
-          <div className="flex justify-center">
+          <div className="flex items-center justify-center space-x-4">
+            <Button
+              onClick={handleHappyClick}
+              disabled={isTyping || isRecording}
+              size="icon"
+              className="w-12 h-12 rounded-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 transition-colors"
+            >
+              <Smile className="h-6 w-6 text-white" />
+            </Button>
+
             <Button
               onMouseDown={startRecording}
               onMouseUp={stopRecording}
@@ -366,6 +385,15 @@ const ChatInterface = () => {
               ) : (
                 <Mic className="h-6 w-6 text-white" />
               )}
+            </Button>
+
+            <Button
+              onClick={handleSadClick}
+              disabled={isTyping || isRecording}
+              size="icon"
+              className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 transition-colors"
+            >
+              <Frown className="h-6 w-6 text-white" />
             </Button>
           </div>
         )}
