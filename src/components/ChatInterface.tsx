@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import MessageBubble from "./MessageBubble";
 import ChatHeader from "./ChatHeader";
 
@@ -25,6 +26,7 @@ const ChatInterface = () => {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -48,17 +50,59 @@ const ChatInterface = () => {
     setInputValue("");
     setIsTyping(true);
 
-    // Simulate API call to n8n webhook
-    setTimeout(() => {
+    try {
+      console.log("Sending message to n8n webhook:", inputValue);
+      
+      const response = await fetch("https://agent.froste.eu/webhook-test/d2f1481f-eaa9-4508-bc3d-35d209ab53c7", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: inputValue,
+          timestamp: new Date().toISOString(),
+          user_id: "chat_user",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Response from n8n:", data);
+
+      // Extract the response message from the webhook response
+      const responseText = data.message || data.response || data.text || "I received your message!";
+
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Thanks for your message! I'm processing your request...",
+        text: responseText,
         isUser: false,
         timestamp: new Date(),
       };
+
       setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error sending message to webhook:", error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Sorry, I'm having trouble connecting right now. Please try again.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      
+      setMessages((prev) => [...prev, errorMessage]);
+      
+      toast({
+        title: "Connection Error",
+        description: "Failed to send message to the webhook. Please check your connection.",
+        variant: "destructive",
+      });
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
