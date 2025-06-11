@@ -39,6 +39,7 @@ const ChatInterface = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const micButtonRef = useRef<HTMLButtonElement>(null);
   
   const { toast } = useToast();
 
@@ -126,6 +127,21 @@ const ChatInterface = () => {
         recordingIntervalRef.current = null;
       }
     }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    startRecording();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    stopRecording();
+  };
+
+  const handleTouchCancel = (e: React.TouchEvent) => {
+    e.preventDefault();
+    stopRecording();
   };
 
   const sendAudioMessage = async () => {
@@ -367,18 +383,25 @@ const ChatInterface = () => {
             </Button>
 
             <Button
+              ref={micButtonRef}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchCancel}
               onMouseDown={startRecording}
               onMouseUp={stopRecording}
               onMouseLeave={stopRecording}
-              onTouchStart={startRecording}
-              onTouchEnd={stopRecording}
               disabled={isTyping}
               size="icon"
-              className={`w-16 h-16 rounded-full transition-colors ${
+              className={`w-16 h-16 rounded-full transition-colors touch-manipulation select-none ${
                 isRecording 
                   ? "bg-red-500 hover:bg-red-600" 
                   : "bg-green-500 hover:bg-green-600"
               } disabled:bg-gray-300`}
+              style={{ 
+                WebkitUserSelect: 'none',
+                WebkitTouchCallout: 'none',
+                WebkitTapHighlightColor: 'transparent'
+              }}
             >
               {isRecording ? (
                 <MicOff className="h-6 w-6 text-white" />
