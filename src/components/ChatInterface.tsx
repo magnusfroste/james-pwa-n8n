@@ -154,7 +154,7 @@ const ChatInterface = () => {
       console.log("Sending audio to n8n webhook");
       console.log("Session ID:", sessionId);
       
-      const response = await fetch("https://agent.froste.eu/webhook-test/d2f1481f-eaa9-4508-bc3d-35d209ab53c7", {
+      const response = await fetch("https://agent.froste.eu/webhook/d2f1481f-eaa9-4508-bc3d-35d209ab53c7", {
         method: "POST",
         body: formData,
       });
@@ -216,7 +216,7 @@ const ChatInterface = () => {
       console.log("Sending message to n8n webhook:", textToSend);
       console.log("Session ID:", sessionId);
       
-      const response = await fetch("https://agent.froste.eu/webhook-test/d2f1481f-eaa9-4508-bc3d-35d209ab53c7", {
+      const response = await fetch("https://agent.froste.eu/webhook/d2f1481f-eaa9-4508-bc3d-35d209ab53c7", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
