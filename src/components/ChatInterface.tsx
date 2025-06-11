@@ -32,6 +32,7 @@ const ChatInterface = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [communicationMethod, setCommunicationMethod] = useState("both");
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -47,6 +48,25 @@ const ChatInterface = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    // Load communication method from localStorage
+    const savedMethod = localStorage.getItem("harmony-communication-method");
+    if (savedMethod) {
+      setCommunicationMethod(savedMethod);
+    }
+
+    // Listen for storage changes to update method in real time
+    const handleStorageChange = () => {
+      const method = localStorage.getItem("harmony-communication-method");
+      if (method) {
+        setCommunicationMethod(method);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   // Clean up recording timer on unmount
   useEffect(() => {
@@ -259,6 +279,9 @@ const ChatInterface = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const showTextInput = communicationMethod === "both" || communicationMethod === "text";
+  const showVoiceInput = communicationMethod === "both" || communicationMethod === "voice";
+
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-white shadow-xl">
       <ChatHeader />
@@ -295,50 +318,57 @@ const ChatInterface = () => {
       )}
 
       {/* Input Container */}
-      <div className="border-t border-gray-100 px-4 py-4 bg-white">
-        <div className="flex items-center space-x-3">
-          <div className="flex-1 relative">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
-              disabled={isRecording}
-              className="pr-14 py-3 rounded-2xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors disabled:opacity-50"
-            />
-            
+      <div className="border-t border-gray-100 px-4 py-4 bg-white space-y-3">
+        {/* Text Input Row */}
+        {showTextInput && (
+          <div className="flex items-center space-x-3">
+            <div className="flex-1 relative">
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type a message..."
+                disabled={isRecording}
+                className="pr-14 py-3 rounded-2xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors disabled:opacity-50"
+              />
+              
+              <Button
+                onClick={handleSendMessage}
+                disabled={!inputValue.trim() || isRecording}
+                size="icon"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 transition-colors"
+              >
+                <Send className="h-4 w-4 text-white" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Voice Input Row */}
+        {showVoiceInput && (
+          <div className="flex justify-center">
             <Button
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isRecording}
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onMouseLeave={stopRecording}
+              onTouchStart={startRecording}
+              onTouchEnd={stopRecording}
+              disabled={isTyping}
               size="icon"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 transition-colors"
+              className={`w-16 h-16 rounded-full transition-colors ${
+                isRecording 
+                  ? "bg-red-500 hover:bg-red-600" 
+                  : "bg-green-500 hover:bg-green-600"
+              } disabled:bg-gray-300`}
             >
-              <Send className="h-4 w-4 text-white" />
+              {isRecording ? (
+                <MicOff className="h-6 w-6 text-white" />
+              ) : (
+                <Mic className="h-6 w-6 text-white" />
+              )}
             </Button>
           </div>
-
-          {/* Push to Talk Button */}
-          <Button
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onMouseLeave={stopRecording}
-            onTouchStart={startRecording}
-            onTouchEnd={stopRecording}
-            disabled={isTyping}
-            size="icon"
-            className={`shrink-0 w-12 h-12 rounded-full transition-colors ${
-              isRecording 
-                ? "bg-red-500 hover:bg-red-600" 
-                : "bg-green-500 hover:bg-green-600"
-            } disabled:bg-gray-300`}
-          >
-            {isRecording ? (
-              <MicOff className="h-5 w-5 text-white" />
-            ) : (
-              <Mic className="h-5 w-5 text-white" />
-            )}
-          </Button>
-        </div>
+        )}
       </div>
     </div>
   );

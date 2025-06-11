@@ -4,6 +4,8 @@ import { ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 const categories = [
   {
@@ -32,16 +34,41 @@ const categories = [
   }
 ];
 
+const communicationMethods = [
+  {
+    id: "both",
+    name: "Both Text & Voice",
+    description: "Use both text messages and voice recording"
+  },
+  {
+    id: "text",
+    name: "Text Only",
+    description: "Only text message input"
+  },
+  {
+    id: "voice",
+    name: "Voice Only",
+    description: "Only voice recording input"
+  }
+];
+
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<string>("both");
 
   useEffect(() => {
     // Load saved category from localStorage
     const savedCategory = localStorage.getItem("harmony-selected-category");
     if (savedCategory) {
       setSelectedCategory(savedCategory);
+    }
+
+    // Load saved communication method from localStorage
+    const savedMethod = localStorage.getItem("harmony-communication-method");
+    if (savedMethod) {
+      setSelectedMethod(savedMethod);
     }
   }, []);
 
@@ -53,6 +80,17 @@ const Settings = () => {
     toast({
       title: "Category Updated",
       description: `Harmony is now specialized in ${category?.name}`,
+    });
+  };
+
+  const handleMethodChange = (methodId: string) => {
+    setSelectedMethod(methodId);
+    localStorage.setItem("harmony-communication-method", methodId);
+    
+    const method = communicationMethods.find(m => m.id === methodId);
+    toast({
+      title: "Communication Method Updated",
+      description: `Switched to ${method?.name}`,
     });
   };
 
@@ -79,62 +117,89 @@ const Settings = () => {
         </div>
 
         {/* Content */}
-        <div className="px-4 py-6">
-          <div className="mb-6">
+        <div className="px-4 py-6 space-y-8">
+          {/* Communication Method Section */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Communication Method</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Choose how you want to interact with Harmony.
+            </p>
+            
+            <RadioGroup value={selectedMethod} onValueChange={handleMethodChange}>
+              <div className="space-y-3">
+                {communicationMethods.map((method) => (
+                  <div key={method.id} className="flex items-start space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50">
+                    <RadioGroupItem value={method.id} id={method.id} className="mt-0.5" />
+                    <div className="flex-1">
+                      <Label htmlFor={method.id} className="font-medium text-gray-900 cursor-pointer">
+                        {method.name}
+                      </Label>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {method.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* Agent Specialization Section */}
+          <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Agent Specialization</h2>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 mb-4">
               Choose a category to customize Harmony's expertise and responses to better match your needs.
             </p>
-          </div>
 
-          <div className="space-y-3">
-            {categories.map((category) => (
-              <div
-                key={category.id}
-                onClick={() => handleCategorySelect(category.id)}
-                className={`
-                  relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
-                  ${selectedCategory === category.id 
-                    ? "border-blue-500 bg-blue-50" 
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                  }
-                `}
-              >
-                <div className="flex items-start space-x-3">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center flex-shrink-0`}>
-                    <span className="text-white font-semibold text-lg">
-                      {category.name.charAt(0)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 mb-1">
-                      {category.name}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {category.description}
-                    </p>
-                  </div>
-
-                  {selectedCategory === category.id && (
-                    <div className="flex-shrink-0">
-                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white" />
-                      </div>
+            <div className="space-y-3">
+              {categories.map((category) => (
+                <div
+                  key={category.id}
+                  onClick={() => handleCategorySelect(category.id)}
+                  className={`
+                    relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
+                    ${selectedCategory === category.id 
+                      ? "border-blue-500 bg-blue-50" 
+                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    }
+                  `}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-white font-semibold text-lg">
+                        {category.name.charAt(0)}
+                      </span>
                     </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        {category.name}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {category.description}
+                      </p>
+                    </div>
 
-          {!selectedCategory && (
-            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-              <p className="text-sm text-amber-800">
-                💡 Select a category to help Harmony provide more targeted and relevant assistance based on your interests.
-              </p>
+                    {selectedCategory === category.id && (
+                      <div className="flex-shrink-0">
+                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
+
+            {!selectedCategory && (
+              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <p className="text-sm text-amber-800">
+                  💡 Select a category to help Harmony provide more targeted and relevant assistance based on your interests.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
