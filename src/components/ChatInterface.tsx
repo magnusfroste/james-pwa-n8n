@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -69,11 +68,9 @@ const ChatInterface = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      console.log("Response from n8n:", data);
-
-      // Extract the response message from the webhook response
-      const responseText = data.message || data.response || data.text || "I received your message!";
+      // Handle text response
+      const responseText = await response.text();
+      console.log("Response from n8n:", responseText);
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
