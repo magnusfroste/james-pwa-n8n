@@ -1,5 +1,6 @@
+
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip } from "lucide-react";
+import { Send, Paperclip, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -30,7 +31,14 @@ const ChatInterface = () => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  
   const { toast } = useToast();
 
   const scrollToBottom = () => {
@@ -40,6 +48,134 @@ const ChatInterface = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Clean up recording timer on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = () => {
+        stream.getTracks().forEach(track => track.stop());
+        sendAudioMessage();
+      };
+      
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      
+      // Start recording timer
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+      toast({
+        title: "Microphone Error",
+        description: "Could not access microphone. Please check permissions.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+    }
+  };
+
+  const sendAudioMessage = async () => {
+    if (audioChunksRef.current.length === 0) return;
+
+    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+    const formData = new FormData();
+    
+    formData.append('audio', audioBlob, 'recording.webm');
+    formData.append('timestamp', new Date().toISOString());
+    formData.append('user_id', 'chat_user');
+    formData.append('session_id', sessionId);
+    formData.append('message_type', 'audio');
+
+    // Add a user message indicating audio was sent
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: "🎤 Voice message sent",
+      isUser: true,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setIsTyping(true);
+
+    try {
+      console.log("Sending audio to n8n webhook");
+      console.log("Session ID:", sessionId);
+      
+      const response = await fetch("https://agent.froste.eu/webhook/d2f1481f-eaa9-4508-bc3d-35d209ab53c7", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Handle text response
+      const responseText = await response.text();
+      console.log("Response from n8n:", responseText);
+
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: responseText,
+        isUser: false,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error sending audio to webhook:", error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Sorry, I'm having trouble processing your voice message. Please try again.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      
+      setMessages((prev) => [...prev, errorMessage]);
+      
+      toast({
+        title: "Audio Processing Error",
+        description: "Failed to process voice message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
@@ -69,6 +205,7 @@ const ChatInterface = () => {
           timestamp: new Date().toISOString(),
           user_id: "chat_user",
           session_id: sessionId,
+          message_type: "text",
         }),
       });
 
@@ -117,6 +254,12 @@ const ChatInterface = () => {
     }
   };
 
+  const formatRecordingTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-white shadow-xl">
       <ChatHeader />
@@ -142,6 +285,16 @@ const ChatInterface = () => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Recording Indicator */}
+      {isRecording && (
+        <div className="px-4 py-2 bg-red-50 border-t border-red-100">
+          <div className="flex items-center justify-center space-x-2 text-red-600">
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium">Recording {formatRecordingTime(recordingTime)}</span>
+          </div>
+        </div>
+      )}
+
       {/* Input Container */}
       <div className="border-t border-gray-100 px-4 py-4 bg-white">
         <div className="flex items-end space-x-3">
@@ -159,18 +312,41 @@ const ChatInterface = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
-              className="pr-12 py-3 rounded-2xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors"
+              disabled={isRecording}
+              className="pr-12 py-3 rounded-2xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors disabled:opacity-50"
             />
             
             <Button
               onClick={handleSendMessage}
-              disabled={!inputValue.trim()}
+              disabled={!inputValue.trim() || isRecording}
               size="icon"
               className="absolute right-1 top-1 bottom-1 w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 transition-colors"
             >
               <Send className="h-4 w-4 text-white" />
             </Button>
           </div>
+
+          {/* Push to Talk Button */}
+          <Button
+            onMouseDown={startRecording}
+            onMouseUp={stopRecording}
+            onMouseLeave={stopRecording}
+            onTouchStart={startRecording}
+            onTouchEnd={stopRecording}
+            disabled={isTyping}
+            size="icon"
+            className={`shrink-0 w-12 h-12 rounded-full transition-colors ${
+              isRecording 
+                ? "bg-red-500 hover:bg-red-600" 
+                : "bg-green-500 hover:bg-green-600"
+            } disabled:bg-gray-300`}
+          >
+            {isRecording ? (
+              <MicOff className="h-5 w-5 text-white" />
+            ) : (
+              <Mic className="h-5 w-5 text-white" />
+            )}
+          </Button>
         </div>
       </div>
     </div>
