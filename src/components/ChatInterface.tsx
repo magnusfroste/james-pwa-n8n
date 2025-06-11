@@ -14,7 +14,7 @@ const ChatInterface = () => {
   } = useChatLogic();
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-white shadow-xl">
+    <div className="flex flex-col h-screen max-w-md mx-auto bg-white shadow-xl overflow-hidden">
       <ChatHeader />
       
       <MessagesList 

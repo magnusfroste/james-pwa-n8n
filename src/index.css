@@ -101,6 +101,36 @@
   body {
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* Prevent iOS bounce scroll */
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* iOS specific height handling */
+  .min-h-screen-ios {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  /* Hide scrollbars but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .webkit-scrollbar-hide {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .webkit-scrollbar-hide::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
   }
 }
 
