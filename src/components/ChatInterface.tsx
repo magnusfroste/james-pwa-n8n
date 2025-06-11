@@ -13,7 +13,13 @@ interface Message {
   timestamp: Date;
 }
 
+// Generate a unique session ID when the component loads
+const generateSessionId = () => {
+  return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+};
+
 const ChatInterface = () => {
+  const [sessionId] = useState(generateSessionId());
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -51,6 +57,7 @@ const ChatInterface = () => {
 
     try {
       console.log("Sending message to n8n webhook:", inputValue);
+      console.log("Session ID:", sessionId);
       
       const response = await fetch("https://agent.froste.eu/webhook/d2f1481f-eaa9-4508-bc3d-35d209ab53c7", {
         method: "POST",
@@ -61,6 +68,7 @@ const ChatInterface = () => {
           message: inputValue,
           timestamp: new Date().toISOString(),
           user_id: "chat_user",
+          session_id: sessionId,
         }),
       });
 
