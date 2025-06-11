@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -297,15 +296,7 @@ const ChatInterface = () => {
 
       {/* Input Container */}
       <div className="border-t border-gray-100 px-4 py-4 bg-white">
-        <div className="flex items-end space-x-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="shrink-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
-          >
-            <Paperclip className="h-5 w-5" />
-          </Button>
-          
+        <div className="flex items-center space-x-3">
           <div className="flex-1 relative">
             <Input
               value={inputValue}
@@ -313,14 +304,14 @@ const ChatInterface = () => {
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
               disabled={isRecording}
-              className="pr-12 py-3 rounded-2xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors disabled:opacity-50"
+              className="pr-14 py-3 rounded-2xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors disabled:opacity-50"
             />
             
             <Button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || isRecording}
               size="icon"
-              className="absolute right-1 top-1 bottom-1 w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 transition-colors"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 transition-colors"
             >
               <Send className="h-4 w-4 text-white" />
             </Button>
