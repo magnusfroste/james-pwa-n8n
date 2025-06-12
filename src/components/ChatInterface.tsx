@@ -15,18 +15,21 @@ const ChatInterface = () => {
 
   return (
     <div className="flex flex-col h-full w-full max-w-full mx-auto bg-white shadow-xl overflow-hidden">
-      <div className="safe-area-inset-top">
+      {/* Header - Fixed height */}
+      <div className="flex-shrink-0 safe-area-inset-top">
         <ChatHeader />
       </div>
       
-      <div className="flex-1 min-h-0 overflow-hidden">
+      {/* Messages - Constrained height to ensure input is visible */}
+      <div className="flex-1 min-h-0 max-h-[calc(100vh-200px)] overflow-hidden">
         <MessagesList 
           messages={messages} 
           isTyping={isTyping} 
         />
       </div>
 
-      <div className="flex-shrink-0 safe-area-inset-bottom">
+      {/* Input - Fixed at bottom with guaranteed space */}
+      <div className="flex-shrink-0 h-auto min-h-[120px] safe-area-inset-bottom bg-white border-t">
         <ChatInput
           onSendMessage={handleSendMessage}
           sendAudioMessage={sendAudioMessage}
