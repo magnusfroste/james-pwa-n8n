@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
     <title>Chat Assistant</title>
     <meta name="description" content="Beautiful mobile-first chat interface for n8n webhooks" />
     <meta name="author" content="Lovable" />
@@ -16,9 +16,14 @@
     <meta name="apple-mobile-web-app-title" content="Chat Assistant" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     
-    <!-- iOS specific meta tags -->
+    <!-- iOS specific meta tags for full screen -->
     <meta name="format-detection" content="telephone=no" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-touch-fullscreen" content="yes" />
+
+    <!-- Additional mobile optimization -->
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="MobileOptimized" content="width" />
 
     <meta property="og:title" content="Chat Assistant" />
     <meta property="og:description" content="Beautiful mobile-first chat interface for n8n webhooks" />
@@ -28,6 +33,22 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <style>
+      /* Prevent zoom on input focus */
+      input, textarea, select {
+        font-size: 16px !important;
+      }
+      
+      /* Ensure full height on mobile */
+      html, body, #root {
+        height: 100%;
+        height: -webkit-fill-available;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+    </style>
   </head>
 
   <body>
