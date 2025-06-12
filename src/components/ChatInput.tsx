@@ -42,19 +42,25 @@ const ChatInput = ({ onSendMessage, sendAudioMessage, isTyping, communicationMet
     handleSendMessage("😔 I'm feeling down...");
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  // Improved touch handling for Apple devices
+  const handleRecordingStart = (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
-    startRecording();
+    e.stopPropagation();
+    
+    // Only start if not already recording
+    if (!isRecording) {
+      startRecording();
+    }
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleRecordingEnd = (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
-    stopRecording();
-  };
-
-  const handleTouchCancel = (e: React.TouchEvent) => {
-    e.preventDefault();
-    stopRecording();
+    e.stopPropagation();
+    
+    // Only stop if currently recording
+    if (isRecording) {
+      stopRecording();
+    }
   };
 
   const showTextInput = communicationMethod === "both" || communicationMethod === "text";
@@ -72,7 +78,7 @@ const ChatInput = ({ onSendMessage, sendAudioMessage, isTyping, communicationMet
         </div>
       )}
 
-      {/* Voice Input Buttons - Now above text input */}
+      {/* Voice Input Buttons - Above text input */}
       {showVoiceInput && (
         <div className="flex items-center justify-center space-x-3 py-3 border-b border-gray-100">
           <Button
@@ -85,12 +91,12 @@ const ChatInput = ({ onSendMessage, sendAudioMessage, isTyping, communicationMet
           </Button>
 
           <Button
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            onTouchCancel={handleTouchCancel}
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onMouseLeave={stopRecording}
+            onTouchStart={handleRecordingStart}
+            onTouchEnd={handleRecordingEnd}
+            onTouchCancel={handleRecordingEnd}
+            onMouseDown={handleRecordingStart}
+            onMouseUp={handleRecordingEnd}
+            onMouseLeave={handleRecordingEnd}
             disabled={isTyping}
             size="icon"
             className={`w-16 h-16 rounded-full transition-colors touch-manipulation ${
@@ -101,7 +107,8 @@ const ChatInput = ({ onSendMessage, sendAudioMessage, isTyping, communicationMet
             style={{ 
               WebkitUserSelect: 'none',
               WebkitTouchCallout: 'none',
-              WebkitTapHighlightColor: 'transparent'
+              WebkitTapHighlightColor: 'transparent',
+              touchAction: 'none'
             }}
           >
             {isRecording ? (
@@ -122,7 +129,7 @@ const ChatInput = ({ onSendMessage, sendAudioMessage, isTyping, communicationMet
         </div>
       )}
 
-      {/* Text Input Row - Now below the buttons */}
+      {/* Text Input Row - Below the buttons */}
       {showTextInput && (
         <div className="px-3 py-3">
           <div className="flex items-center space-x-2">

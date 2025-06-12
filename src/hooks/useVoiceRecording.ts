@@ -9,6 +9,7 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const isStartingRef = useRef(false);
   
   const { toast } = useToast();
 
@@ -22,31 +23,66 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
   }, []);
 
   const startRecording = async () => {
+    // Prevent multiple simultaneous starts
+    if (isStartingRef.current || isRecording) {
+      console.log("Recording already starting or in progress");
+      return;
+    }
+
+    isStartingRef.current = true;
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      console.log("Starting recording...");
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        } 
+      });
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
       
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
       
       mediaRecorder.ondataavailable = (event) => {
+        console.log("Data available:", event.data.size);
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
       };
       
       mediaRecorder.onstop = () => {
+        console.log("Recording stopped, chunks:", audioChunksRef.current.length);
         stream.getTracks().forEach(track => track.stop());
-        sendAudioMessage(audioChunksRef);
+        
+        // Only send if we have enough data (at least 1 second of recording)
+        if (recordingTime >= 1) {
+          sendAudioMessage(audioChunksRef);
+        } else {
+          console.log("Recording too short, not sending");
+          toast({
+            title: "Recording Too Short",
+            description: "Please hold the button for at least 1 second to record.",
+            variant: "destructive",
+          });
+        }
       };
       
-      mediaRecorder.start();
+      mediaRecorder.start(100); // Collect data every 100ms
       setIsRecording(true);
       setRecordingTime(0);
       
-      // Start recording timer
+      // Start recording timer with slower interval
       recordingIntervalRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
+        setRecordingTime(prev => {
+          const newTime = prev + 1;
+          console.log("Recording time:", newTime);
+          return newTime;
+        });
       }, 1000);
       
     } catch (error) {
@@ -56,11 +92,14 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
         description: "Could not access microphone. Please check permissions.",
         variant: "destructive",
       });
+    } finally {
+      isStartingRef.current = false;
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && isRecording && !isStartingRef.current) {
+      console.log("Stopping recording...");
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       
