@@ -30,7 +30,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 w-full bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden" style={{ height: '100vh', height: 'calc(var(--vh, 1vh) * 100)' }}>
+    <div className="fixed inset-0 w-full bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
       <ChatInterface />
     </div>
   );
