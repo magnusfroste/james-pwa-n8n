@@ -24,28 +24,9 @@ export const useChatLogic = () => {
     },
   ]);
   const [isTyping, setIsTyping] = useState(false);
-  const [communicationMethod, setCommunicationMethod] = useState("both");
+  const communicationMethod = "both"; // Always both text and voice
   
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Load communication method from localStorage
-    const savedMethod = localStorage.getItem("harmony-communication-method");
-    if (savedMethod) {
-      setCommunicationMethod(savedMethod);
-    }
-
-    // Listen for storage changes to update method in real time
-    const handleStorageChange = () => {
-      const method = localStorage.getItem("harmony-communication-method");
-      if (method) {
-        setCommunicationMethod(method);
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
 
   const handleSendMessage = async (messageText?: string, inputValue?: string, setInputValue?: (value: string) => void) => {
     const textToSend = messageText || inputValue;

@@ -4,8 +4,6 @@ import { ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 
 const categories = [
   {
@@ -34,41 +32,16 @@ const categories = [
   }
 ];
 
-const communicationMethods = [
-  {
-    id: "both",
-    name: "Both Text & Voice",
-    description: "Use both text messages and voice recording"
-  },
-  {
-    id: "text",
-    name: "Text Only",
-    description: "Only text message input"
-  },
-  {
-    id: "voice",
-    name: "Voice Only",
-    description: "Only voice recording input"
-  }
-];
-
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedMethod, setSelectedMethod] = useState<string>("both");
 
   useEffect(() => {
     // Load saved category from localStorage
     const savedCategory = localStorage.getItem("harmony-selected-category");
     if (savedCategory) {
       setSelectedCategory(savedCategory);
-    }
-
-    // Load saved communication method from localStorage
-    const savedMethod = localStorage.getItem("harmony-communication-method");
-    if (savedMethod) {
-      setSelectedMethod(savedMethod);
     }
   }, []);
 
@@ -80,17 +53,6 @@ const Settings = () => {
     toast({
       title: "Category Updated",
       description: `Harmony is now specialized in ${category?.name}`,
-    });
-  };
-
-  const handleMethodChange = (methodId: string) => {
-    setSelectedMethod(methodId);
-    localStorage.setItem("harmony-communication-method", methodId);
-    
-    const method = communicationMethods.find(m => m.id === methodId);
-    toast({
-      title: "Communication Method Updated",
-      description: `Switched to ${method?.name}`,
     });
   };
 
@@ -118,32 +80,6 @@ const Settings = () => {
 
         {/* Content */}
         <div className="px-4 py-6 space-y-8">
-          {/* Communication Method Section */}
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Communication Method</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Choose how you want to interact with Harmony.
-            </p>
-            
-            <RadioGroup value={selectedMethod} onValueChange={handleMethodChange}>
-              <div className="space-y-3">
-                {communicationMethods.map((method) => (
-                  <div key={method.id} className="flex items-start space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50">
-                    <RadioGroupItem value={method.id} id={method.id} className="mt-0.5" />
-                    <div className="flex-1">
-                      <Label htmlFor={method.id} className="font-medium text-gray-900 cursor-pointer">
-                        {method.name}
-                      </Label>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {method.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </RadioGroup>
-          </div>
-
           {/* Agent Specialization Section */}
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Agent Specialization</h2>
