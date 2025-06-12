@@ -14,14 +14,23 @@ const Index = () => {
     window.addEventListener('resize', setVH);
     window.addEventListener('orientationchange', setVH);
 
+    // Force a resize after orientation change on mobile
+    const handleOrientationChange = () => {
+      setTimeout(setVH, 100);
+      setTimeout(setVH, 500);
+    };
+
+    window.addEventListener('orientationchange', handleOrientationChange);
+
     return () => {
       window.removeEventListener('resize', setVH);
       window.removeEventListener('orientationchange', setVH);
+      window.removeEventListener('orientationchange', handleOrientationChange);
     };
   }, []);
 
   return (
-    <div className="h-screen-mobile w-full bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+    <div className="fixed inset-0 w-full bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
       <ChatInterface />
     </div>
   );

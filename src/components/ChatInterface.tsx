@@ -14,20 +14,26 @@ const ChatInterface = () => {
   } = useChatLogic();
 
   return (
-    <div className="flex flex-col h-full w-full max-w-full mx-auto bg-white shadow-xl overflow-hidden safe-area-inset-top safe-area-inset-bottom">
-      <ChatHeader />
+    <div className="flex flex-col h-full w-full max-w-full mx-auto bg-white shadow-xl overflow-hidden">
+      <div className="safe-area-inset-top">
+        <ChatHeader />
+      </div>
       
-      <MessagesList 
-        messages={messages} 
-        isTyping={isTyping} 
-      />
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <MessagesList 
+          messages={messages} 
+          isTyping={isTyping} 
+        />
+      </div>
 
-      <ChatInput
-        onSendMessage={handleSendMessage}
-        sendAudioMessage={sendAudioMessage}
-        isTyping={isTyping}
-        communicationMethod={communicationMethod}
-      />
+      <div className="flex-shrink-0 safe-area-inset-bottom">
+        <ChatInput
+          onSendMessage={handleSendMessage}
+          sendAudioMessage={sendAudioMessage}
+          isTyping={isTyping}
+          communicationMethod={communicationMethod}
+        />
+      </div>
     </div>
   );
 };
