@@ -42,24 +42,11 @@ const ChatInput = ({ onSendMessage, sendAudioMessage, isTyping, communicationMet
     handleSendMessage("😔 I'm feeling down...");
   };
 
-  // Improved touch handling for Apple devices
-  const handleRecordingStart = (e: React.TouchEvent | React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Only start if not already recording
-    if (!isRecording) {
-      startRecording();
-    }
-  };
-
-  const handleRecordingEnd = (e: React.TouchEvent | React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Only stop if currently recording
+  const handleRecordingToggle = () => {
     if (isRecording) {
       stopRecording();
+    } else {
+      startRecording();
     }
   };
 
@@ -85,31 +72,20 @@ const ChatInput = ({ onSendMessage, sendAudioMessage, isTyping, communicationMet
             onClick={handleHappyClick}
             disabled={isTyping || isRecording}
             size="icon"
-            className="w-12 h-12 rounded-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 transition-colors touch-manipulation"
+            className="w-12 h-12 rounded-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 transition-colors"
           >
             <Smile className="h-6 w-6 text-white" />
           </Button>
 
           <Button
-            onTouchStart={handleRecordingStart}
-            onTouchEnd={handleRecordingEnd}
-            onTouchCancel={handleRecordingEnd}
-            onMouseDown={handleRecordingStart}
-            onMouseUp={handleRecordingEnd}
-            onMouseLeave={handleRecordingEnd}
+            onClick={handleRecordingToggle}
             disabled={isTyping}
             size="icon"
-            className={`w-16 h-16 rounded-full transition-colors touch-manipulation ${
+            className={`w-16 h-16 rounded-full transition-colors ${
               isRecording 
                 ? "bg-red-500 hover:bg-red-600" 
                 : "bg-green-500 hover:bg-green-600"
             } disabled:bg-gray-300`}
-            style={{ 
-              WebkitUserSelect: 'none',
-              WebkitTouchCallout: 'none',
-              WebkitTapHighlightColor: 'transparent',
-              touchAction: 'none'
-            }}
           >
             {isRecording ? (
               <MicOff className="h-6 w-6 text-white" />
@@ -122,7 +98,7 @@ const ChatInput = ({ onSendMessage, sendAudioMessage, isTyping, communicationMet
             onClick={handleSadClick}
             disabled={isTyping || isRecording}
             size="icon"
-            className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 transition-colors touch-manipulation"
+            className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 transition-colors"
           >
             <Frown className="h-6 w-6 text-white" />
           </Button>

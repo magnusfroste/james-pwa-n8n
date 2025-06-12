@@ -9,7 +9,7 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const isStartingRef = useRef(false);
+  const streamRef = useRef<MediaStream | null>(null);
   
   const { toast } = useToast();
 
@@ -19,17 +19,17 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
       if (recordingIntervalRef.current) {
         clearInterval(recordingIntervalRef.current);
       }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
     };
   }, []);
 
   const startRecording = async () => {
-    // Prevent multiple simultaneous starts
-    if (isStartingRef.current || isRecording) {
-      console.log("Recording already starting or in progress");
+    if (isRecording) {
+      console.log("Already recording");
       return;
     }
-
-    isStartingRef.current = true;
 
     try {
       console.log("Starting recording...");
@@ -40,6 +40,8 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
           sampleRate: 44100
         } 
       });
+      
+      streamRef.current = stream;
       
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus'
@@ -57,7 +59,11 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
       
       mediaRecorder.onstop = () => {
         console.log("Recording stopped, chunks:", audioChunksRef.current.length);
-        stream.getTracks().forEach(track => track.stop());
+        
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
         
         // Only send if we have enough data (at least 1 second of recording)
         if (recordingTime >= 1) {
@@ -66,7 +72,7 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
           console.log("Recording too short, not sending");
           toast({
             title: "Recording Too Short",
-            description: "Please hold the button for at least 1 second to record.",
+            description: "Please record for at least 1 second.",
             variant: "destructive",
           });
         }
@@ -76,7 +82,7 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
       setIsRecording(true);
       setRecordingTime(0);
       
-      // Start recording timer with slower interval
+      // Start recording timer
       recordingIntervalRef.current = setInterval(() => {
         setRecordingTime(prev => {
           const newTime = prev + 1;
@@ -92,21 +98,22 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
         description: "Could not access microphone. Please check permissions.",
         variant: "destructive",
       });
-    } finally {
-      isStartingRef.current = false;
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording && !isStartingRef.current) {
-      console.log("Stopping recording...");
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-        recordingIntervalRef.current = null;
-      }
+    if (!isRecording || !mediaRecorderRef.current) {
+      console.log("Not currently recording");
+      return;
+    }
+
+    console.log("Stopping recording...");
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+    
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
     }
   };
 
