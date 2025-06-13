@@ -18,7 +18,7 @@ export const useChatLogic = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hello! I'm your Vibe. How are you today?",
+      text: "Hello! I'm James. How are you today?",
       isUser: false,
       timestamp: new Date(),
     },
