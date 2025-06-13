@@ -19,7 +19,7 @@ const ChatHeader = () => {
             <span className="text-white font-semibold text-sm">H</span>
           </div>
           <div>
-            <h1 className="font-semibold text-gray-900">Harmony</h1>
+            <h1 className="font-semibold text-gray-900">James</h1>
           </div>
         </div>
         
