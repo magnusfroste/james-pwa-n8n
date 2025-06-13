@@ -55,7 +55,7 @@ const ChatHeader = () => {
                   </div>
                   <div className="flex items-center space-x-2 pt-2 border-t border-gray-100">
                     <Home className="h-4 w-4 text-green-600" />
-                    <p className="text-sm text-gray-600">Harmony will appear on your home screen like a regular app!</p>
+                    <p className="text-sm text-gray-600">James will appear on your home screen like a regular app!</p>
                   </div>
                 </div>
               </div>
