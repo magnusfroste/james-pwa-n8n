@@ -47,7 +47,7 @@ export const useChatLogic = () => {
       console.log("Sending message to n8n webhook:", textToSend);
       console.log("Session ID:", sessionId);
       
-      const response = await fetch("https://agent.froste.eu/webhook/d2f1481f-eaa9-4508-bc3d-35d209ab53c7", {
+      const response = await fetch("https://agent.froste.eu/webhook/2dbd1bc0-8679-4315-9e7b-0a5b0137112e", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +123,7 @@ export const useChatLogic = () => {
       console.log("Sending audio to n8n webhook");
       console.log("Session ID:", sessionId);
       
-      const response = await fetch("https://agent.froste.eu/webhook/d2f1481f-eaa9-4508-bc3d-35d209ab53c7", {
+      const response = await fetch("https://agent.froste.eu/webhook/2dbd1bc0-8679-4315-9e7b-0a5b0137112e", {
         method: "POST",
         body: formData,
       });
