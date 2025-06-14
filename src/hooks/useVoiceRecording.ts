@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -86,9 +85,18 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
           streamRef.current = null;
         }
         
-        // Only send if we have enough data (at least 1 second of recording)
-        if (recordingTime >= 1) {
+        const hasAudioData = audioChunksRef.current.length > 0;
+        const isLongEnough = recordingTime >= 1;
+
+        if (isLongEnough && hasAudioData) {
           sendAudioMessage(audioChunksRef, mimeTypeRef.current);
+        } else if (isLongEnough && !hasAudioData) {
+            console.error("Recording was long enough, but no audio data was captured.");
+            toast({
+                title: "Recording Failed",
+                description: "No audio was captured. Please try again.",
+                variant: "destructive",
+            });
         } else {
           console.log("Recording too short, not sending");
           toast({
@@ -128,8 +136,13 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
       return;
     }
 
-    console.log("Stopping recording...");
-    mediaRecorderRef.current.stop();
+    if (mediaRecorderRef.current.state === "recording") {
+        console.log("Stopping recording...");
+        // Explicitly request data before stopping. This can help on browsers like Safari.
+        mediaRecorderRef.current.requestData();
+        mediaRecorderRef.current.stop();
+    }
+    
     setIsRecording(false);
     
     if (recordingIntervalRef.current) {
