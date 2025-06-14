@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -98,13 +97,16 @@ export const useChatLogic = () => {
     }
   };
 
-  const sendAudioMessage = async (audioChunksRef: React.MutableRefObject<Blob[]>) => {
+  const sendAudioMessage = async (audioChunksRef: React.MutableRefObject<Blob[]>, mimeType: string) => {
     if (audioChunksRef.current.length === 0) return;
 
-    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+    const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
     const formData = new FormData();
     
-    formData.append('audio', audioBlob, 'recording.webm');
+    const fileExtension = mimeType.split('/')[1]?.split(';')[0] || 'webm';
+    const fileName = `recording.${fileExtension}`;
+
+    formData.append('audio', audioBlob, fileName);
     formData.append('timestamp', new Date().toISOString());
     formData.append('user_id', 'chat_user');
     formData.append('session_id', sessionId);
@@ -120,7 +122,7 @@ export const useChatLogic = () => {
     setIsTyping(true);
 
     try {
-      console.log("Sending audio to n8n webhook");
+      console.log("Sending audio to n8n webhook with filename:", fileName);
       console.log("Session ID:", sessionId);
       
       const response = await fetch("https://agent.froste.eu/webhook/2dbd1bc0-8679-4315-9e7b-0a5b0137112e", {

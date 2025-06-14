@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.MutableRefObject<Blob[]>) => Promise<void>) => {
+export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.MutableRefObject<Blob[]>, mimeType: string) => Promise<void>) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   
@@ -10,6 +10,7 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const mimeTypeRef = useRef<string>('');
   
   const { toast } = useToast();
 
@@ -43,8 +44,28 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
       
       streamRef.current = stream;
       
+      const mimeTypes = [
+        'audio/webm;codecs=opus',
+        'audio/mp4',
+        'audio/webm',
+      ];
+      const supportedMimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
+
+      if (!supportedMimeType) {
+        console.error("No supported MIME type found for MediaRecorder");
+        toast({
+          title: "Recording Error",
+          description: "Your browser does not support the required audio format.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      console.log("Using MIME type:", supportedMimeType);
+      mimeTypeRef.current = supportedMimeType;
+      
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: supportedMimeType
       });
       
       mediaRecorderRef.current = mediaRecorder;
@@ -67,7 +88,7 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
         
         // Only send if we have enough data (at least 1 second of recording)
         if (recordingTime >= 1) {
-          sendAudioMessage(audioChunksRef);
+          sendAudioMessage(audioChunksRef, mimeTypeRef.current);
         } else {
           console.log("Recording too short, not sending");
           toast({

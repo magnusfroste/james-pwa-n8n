@@ -7,7 +7,7 @@ import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 
 interface ChatInputProps {
   onSendMessage: (messageText?: string, inputValue?: string, setInputValue?: (value: string) => void) => Promise<void>;
-  sendAudioMessage: (audioChunksRef: React.MutableRefObject<Blob[]>) => Promise<void>;
+  sendAudioMessage: (audioChunksRef: React.MutableRefObject<Blob[]>, mimeType: string) => Promise<void>;
   isTyping: boolean;
   communicationMethod: string;
 }
