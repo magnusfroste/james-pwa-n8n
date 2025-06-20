@@ -1,8 +1,8 @@
 
 {
-  "name": "Chat Assistant",
-  "short_name": "ChatApp",
-  "description": "Beautiful mobile-first chat interface for n8n webhooks",
+  "name": "James",
+  "short_name": "James",
+  "description": "Beautiful mobile-first chat interface with James",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

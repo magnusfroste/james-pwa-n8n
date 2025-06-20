@@ -17,9 +17,9 @@ export default defineConfig(({ command }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'icon-192.png', 'icon-512.png'],
       manifest: {
-        name: 'Chat Assistant',
-        short_name: 'ChatApp',
-        description: 'Beautiful mobile-first chat interface for n8n webhooks',
+        name: 'James',
+        short_name: 'James',
+        description: 'Beautiful mobile-first chat interface with James',
         theme_color: '#3b82f6',
         icons: [
           {
