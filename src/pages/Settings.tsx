@@ -7,27 +7,27 @@ import { useToast } from "@/hooks/use-toast";
 
 const categories = [
   {
-    id: "health-fitness",
-    name: "Health & Fitness",
-    description: "Wellness, exercise, nutrition, and healthy lifestyle guidance",
-    color: "from-green-500 to-emerald-600"
-  },
-  {
-    id: "mental-health",
-    name: "Mental Health",
-    description: "Emotional wellbeing, mindfulness, and mental health support",
-    color: "from-purple-500 to-indigo-600"
-  },
-  {
-    id: "productivity",
-    name: "Productivity",
-    description: "Task management, time optimization, and efficiency tips",
+    id: "customer-support",
+    name: "Customer Support",
+    description: "Enhance customer service with intelligent support, FAQ assistance, and issue resolution",
     color: "from-blue-500 to-cyan-600"
   },
   {
-    id: "education",
-    name: "Education",
-    description: "Learning support, study techniques, and knowledge sharing",
+    id: "sales-enablement",
+    name: "Sales Enablement",
+    description: "Boost sales performance with lead qualification, product information, and sales training",
+    color: "from-green-500 to-emerald-600"
+  },
+  {
+    id: "knowledge-management",
+    name: "Knowledge Management",
+    description: "Streamline information access, document retrieval, and institutional knowledge sharing",
+    color: "from-purple-500 to-indigo-600"
+  },
+  {
+    id: "employee-assistance",
+    name: "Employee Assistance",
+    description: "Support HR operations, onboarding processes, and internal employee queries",
     color: "from-orange-500 to-red-600"
   }
 ];
