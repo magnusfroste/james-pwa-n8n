@@ -131,7 +131,7 @@ const Settings = () => {
             {!selectedCategory && (
               <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                 <p className="text-sm text-amber-800">
-                  💡 Select a category to help Harmony provide more targeted and relevant assistance based on your interests.
+                  💡 Select a category to help James provide more targeted and relevant assistance based on your interests.
                 </p>
               </div>
             )}
