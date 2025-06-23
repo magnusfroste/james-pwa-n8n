@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -10,6 +11,7 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const mimeTypeRef = useRef<string>('');
+  const isInitializingRef = useRef<boolean>(false);
   
   const { toast } = useToast();
 
@@ -26,13 +28,15 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
   }, []);
 
   const startRecording = async () => {
-    if (isRecording) {
-      console.log("Already recording");
+    if (isRecording || isInitializingRef.current) {
+      console.log("Already recording or initializing");
       return;
     }
 
     try {
       console.log("Starting recording...");
+      isInitializingRef.current = true;
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -57,11 +61,15 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
           description: "Your browser does not support the required audio format.",
           variant: "destructive",
         });
+        isInitializingRef.current = false;
         return;
       }
       
       console.log("Using MIME type:", supportedMimeType);
       mimeTypeRef.current = supportedMimeType;
+      
+      // Add a small delay for iOS Safari compatibility
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: supportedMimeType
@@ -107,21 +115,44 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
         }
       };
       
-      mediaRecorder.start(100); // Collect data every 100ms
-      setIsRecording(true);
-      setRecordingTime(0);
-      
-      // Start recording timer
-      recordingIntervalRef.current = setInterval(() => {
-        setRecordingTime(prev => {
-          const newTime = prev + 1;
-          console.log("Recording time:", newTime);
-          return newTime;
+      mediaRecorder.onerror = (event) => {
+        console.error("MediaRecorder error:", event);
+        setIsRecording(false);
+        isInitializingRef.current = false;
+        if (recordingIntervalRef.current) {
+          clearInterval(recordingIntervalRef.current);
+          recordingIntervalRef.current = null;
+        }
+        toast({
+          title: "Recording Error",
+          description: "An error occurred during recording. Please try again.",
+          variant: "destructive",
         });
-      }, 1000);
+      };
+      
+      // Wait for MediaRecorder to be ready before starting
+      if (mediaRecorder.state === 'inactive') {
+        mediaRecorder.start(100); // Collect data every 100ms
+        setIsRecording(true);
+        setRecordingTime(0);
+        isInitializingRef.current = false;
+        
+        // Start recording timer
+        recordingIntervalRef.current = setInterval(() => {
+          setRecordingTime(prev => {
+            const newTime = prev + 1;
+            console.log("Recording time:", newTime);
+            return newTime;
+          });
+        }, 1000);
+      } else {
+        console.error("MediaRecorder is not in inactive state:", mediaRecorder.state);
+        isInitializingRef.current = false;
+      }
       
     } catch (error) {
       console.error("Error accessing microphone:", error);
+      isInitializingRef.current = false;
       toast({
         title: "Microphone Error",
         description: "Could not access microphone. Please check permissions.",
@@ -158,7 +189,7 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
   };
 
   return {
-    isRecording,
+    isRecording: isRecording || isInitializingRef.current,
     recordingTime,
     startRecording,
     stopRecording,
