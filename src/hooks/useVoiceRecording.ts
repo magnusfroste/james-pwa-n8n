@@ -13,6 +13,7 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const mimeTypeRef = useRef<string>('');
+  const recordingStartTimeRef = useRef<number>(0);
   
   const { toast } = useToast();
 
@@ -32,6 +33,7 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
     console.log("Resetting recording state");
     setRecordingState('idle');
     setRecordingTime(0);
+    recordingStartTimeRef.current = 0;
     
     if (recordingIntervalRef.current) {
       clearInterval(recordingIntervalRef.current);
@@ -119,10 +121,18 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
       mediaRecorder.onstop = () => {
         console.log("Recording stopped, chunks:", audioChunksRef.current.length);
         
+        // Calculate actual recording duration
+        const actualDuration = recordingStartTimeRef.current > 0 
+          ? (Date.now() - recordingStartTimeRef.current) / 1000 
+          : recordingTime;
+        
+        console.log("Actual recording duration:", actualDuration, "seconds");
+        
         const hasAudioData = audioChunksRef.current.length > 0;
-        const isLongEnough = recordingTime >= 1;
+        const isLongEnough = actualDuration >= 1;
 
         if (isLongEnough && hasAudioData) {
+          console.log("Recording is valid, sending audio message");
           sendAudioMessage(audioChunksRef, mimeTypeRef.current);
         } else if (isLongEnough && !hasAudioData) {
             console.error("Recording was long enough, but no audio data was captured.");
@@ -132,7 +142,7 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
                 variant: "destructive",
             });
         } else {
-          console.log("Recording too short, not sending");
+          console.log("Recording too short, not sending. Duration:", actualDuration);
           toast({
             title: "Recording Too Short",
             description: "Please record for at least 1 second.",
@@ -159,11 +169,14 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
         console.log("Starting MediaRecorder...");
         mediaRecorder.start(100); // Collect data every 100ms
         
+        // Record the actual start time
+        recordingStartTimeRef.current = Date.now();
+        
         // Update state to recording only after successful start
         setRecordingState('recording');
         setRecordingTime(0);
         
-        console.log("Recording started successfully");
+        console.log("Recording started successfully at:", recordingStartTimeRef.current);
         
         // Start recording timer
         recordingIntervalRef.current = setInterval(() => {
