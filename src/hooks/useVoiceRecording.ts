@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useToast } = "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.MutableRefObject<Blob[]>, mimeType: string) => Promise<void>) => {
   const [recordingTime, setRecordingTime] = useState(0);
