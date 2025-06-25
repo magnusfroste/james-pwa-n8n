@@ -1,17 +1,18 @@
 
-import { useState, useRef, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useToast } = "@/hooks/use-toast";
 
 export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.MutableRefObject<Blob[]>, mimeType: string) => Promise<void>) => {
-  const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  
+  // Simplified state management - use single state enum instead of multiple booleans
+  const [recordingState, setRecordingState] = useState<'idle' | 'initializing' | 'recording' | 'stopping'>('idle');
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const mimeTypeRef = useRef<string>('');
-  const isInitializingRef = useRef<boolean>(false);
   
   const { toast } = useToast();
 
@@ -27,10 +28,11 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
     };
   }, []);
 
-  const resetRecordingState = () => {
+  const resetRecordingState = useCallback(() => {
     console.log("Resetting recording state");
-    setIsRecording(false);
-    isInitializingRef.current = false;
+    setRecordingState('idle');
+    setRecordingTime(0);
+    
     if (recordingIntervalRef.current) {
       clearInterval(recordingIntervalRef.current);
       recordingIntervalRef.current = null;
@@ -42,25 +44,22 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current = null;
     }
-  };
+  }, []);
 
-  const startRecording = async () => {
-    console.log("startRecording called - current states:", {
-      isRecording,
-      isInitializing: isInitializingRef.current,
-      hasMediaRecorder: !!mediaRecorderRef.current,
-      hasStream: !!streamRef.current
-    });
+  const startRecording = useCallback(async () => {
+    console.log("startRecording called - current state:", recordingState);
 
-    // Prevent multiple simultaneous initialization attempts
-    if (isRecording || isInitializingRef.current) {
-      console.log("Already recording or initializing, ignoring call");
+    // Atomic state check and update
+    if (recordingState !== 'idle') {
+      console.log("Not in idle state, ignoring call. Current state:", recordingState);
       return;
     }
 
+    // Immediately set to initializing to prevent race conditions
+    setRecordingState('initializing');
+
     try {
       console.log("Starting recording initialization...");
-      isInitializingRef.current = true;
       
       // Clean up any existing resources first
       if (streamRef.current) {
@@ -100,8 +99,8 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
       console.log("Using MIME type:", supportedMimeType);
       mimeTypeRef.current = supportedMimeType;
       
-      // Add delay specifically for iOS Safari compatibility
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Add delay for browser compatibility
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: supportedMimeType
@@ -160,10 +159,9 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
         console.log("Starting MediaRecorder...");
         mediaRecorder.start(100); // Collect data every 100ms
         
-        // Update states after successful start
-        setIsRecording(true);
+        // Update state to recording only after successful start
+        setRecordingState('recording');
         setRecordingTime(0);
-        isInitializingRef.current = false;
         
         console.log("Recording started successfully");
         
@@ -189,19 +187,18 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
         variant: "destructive",
       });
     }
-  };
+  }, [recordingState, recordingTime, resetRecordingState, sendAudioMessage, toast]);
 
-  const stopRecording = () => {
-    console.log("stopRecording called - current states:", {
-      isRecording,
-      hasMediaRecorder: !!mediaRecorderRef.current,
-      mediaRecorderState: mediaRecorderRef.current?.state
-    });
+  const stopRecording = useCallback(() => {
+    console.log("stopRecording called - current state:", recordingState);
 
-    if (!isRecording || !mediaRecorderRef.current) {
-      console.log("Not currently recording or no media recorder");
+    if (recordingState !== 'recording' || !mediaRecorderRef.current) {
+      console.log("Not currently recording or no media recorder. State:", recordingState);
       return;
     }
+
+    // Set to stopping state to prevent multiple stops
+    setRecordingState('stopping');
 
     if (mediaRecorderRef.current.state === "recording") {
         console.log("Stopping recording...");
@@ -212,16 +209,16 @@ export const useVoiceRecording = (sendAudioMessage: (audioChunksRef: React.Mutab
       console.log("MediaRecorder not in recording state:", mediaRecorderRef.current.state);
       resetRecordingState();
     }
-  };
+  }, [recordingState, resetRecordingState]);
 
-  const formatRecordingTime = (seconds: number) => {
+  const formatRecordingTime = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
   return {
-    isRecording: isRecording || isInitializingRef.current,
+    isRecording: recordingState === 'recording' || recordingState === 'initializing',
     recordingTime,
     startRecording,
     stopRecording,
