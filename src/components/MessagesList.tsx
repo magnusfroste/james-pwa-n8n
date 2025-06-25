@@ -1,5 +1,6 @@
 
 import { useRef, useEffect } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import MessageBubble from "./MessageBubble";
 import type { Message } from "@/hooks/useChatLogic";
 
@@ -20,25 +21,27 @@ const MessagesList = ({ messages, isTyping }: MessagesListProps) => {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 scrollbar-hide webkit-scrollbar-hide">
-      {messages.map((message) => (
-        <MessageBubble key={message.id} message={message} />
-      ))}
-      
-      {isTyping && (
-        <div className="flex justify-start">
-          <div className="bg-gray-100 rounded-2xl px-4 py-3 max-w-xs">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
+    <ScrollArea className="flex-1 h-full">
+      <div className="px-4 py-6 space-y-4">
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} />
+        ))}
+        
+        {isTyping && (
+          <div className="flex justify-start">
+            <div className="bg-gray-100 rounded-2xl px-4 py-3 max-w-xs">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      
-      <div ref={messagesEndRef} />
-    </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
+    </ScrollArea>
   );
 };
 

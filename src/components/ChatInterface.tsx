@@ -14,14 +14,14 @@ const ChatInterface = () => {
   } = useChatLogic();
 
   return (
-    <div className="flex flex-col h-full w-full max-w-full mx-auto bg-white shadow-xl overflow-hidden">
+    <div className="flex flex-col h-full w-full max-w-full mx-auto bg-white shadow-xl">
       {/* Header - Fixed height */}
       <div className="flex-shrink-0 safe-area-inset-top">
         <ChatHeader />
       </div>
       
-      {/* Messages - Constrained height to ensure input is visible */}
-      <div className="flex-1 min-h-0 max-h-[calc(100vh-200px)] overflow-hidden">
+      {/* Messages - Takes remaining space with proper scroll */}
+      <div className="flex-1 min-h-0">
         <MessagesList 
           messages={messages} 
           isTyping={isTyping} 
