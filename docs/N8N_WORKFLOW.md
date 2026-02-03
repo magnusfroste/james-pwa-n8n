@@ -2,7 +2,9 @@
 
 ## Overview
 
-This document describes the n8n workflow that powers the James PWA AI agent. The workflow handles both text and audio messages, provides intelligent responses using GPT-4o-mini, and maintains a knowledge base for conversation history.
+This document describes the n8n workflow that powers the James PWA AI agent. Think of it as a modern, AI-powered version of Agent Cooper's dictaphone from Twin Peaks - recording conversations, learning from them, and using that knowledge to provide intelligent, context-aware responses.
+
+The workflow handles both text and audio messages, provides intelligent responses using GPT-4o-mini, and maintains a knowledge base for conversation history.
 
 ## Workflow ID
 
