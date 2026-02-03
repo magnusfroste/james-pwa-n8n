@@ -29,11 +29,30 @@ James is designed specifically for iOS users who want a native app experience:
 
 - Node.js (v18 or higher)
 - npm or yarn
+- n8n instance (self-hosted or cloud)
 
 ### Installation
 
 ```bash
 npm install
+```
+
+### Configuration
+
+**Option 1: Environment Variables (Recommended)**
+
+Create a `.env` file in the project root:
+
+```env
+VITE_N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/YOUR_WEBHOOK_ID
+```
+
+**Option 2: Hardcoded in Code**
+
+Edit `src/hooks/useChatLogic.ts` and replace the webhook URL:
+
+```typescript
+const response = await fetch("YOUR_N8N_WEBHOOK_URL", {
 ```
 
 ### Run Locally
