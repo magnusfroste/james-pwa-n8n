@@ -1,0 +1,11 @@
+# James
+
+> James is a mobile-first progressive web app (PWA) for chatting with an AI agent by text or voice. Messages are sent to an n8n webhook-based agent.
+
+## Features
+- Text and voice input with transcription
+- Quick emotion buttons
+- Installable on the iOS/Android home screen for full-screen use
+
+## Links
+- App: https://james-pwa.lovable.app/
